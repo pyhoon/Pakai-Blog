@@ -126,22 +126,23 @@ Private Sub CreateDatabase
 	DB.Create
 
 	DB.Columns = Array("category_name")
-	DB.Insert2(Array("Hardwares"))
-	DB.Insert2(Array("Toys"))
+	DB.Insert2(Array("Life"))
+	DB.Insert2(Array("Jokes"))
+	DB.Insert2(Array("News"))
 
-	DB.Table = "tbl_products"
+	DB.Table = "tbl_articles"
 	DB.Columns.Add(DB.CreateColumn2(CreateMap("Name": "category_id", "Type": DB.INTEGER, "Null": False)))
-	DB.Columns.Add(DB.CreateColumn2(CreateMap("Name": "product_code", "Length": "12", "Null": False)))
-	DB.Columns.Add(DB.CreateColumn2(CreateMap("Name": "product_name", "Null": False)))
-	DB.Columns.Add(DB.CreateColumn2(CreateMap("Name": "product_price", "Type": DB.DECIMAL, "Length": "10,2", "Null": False, "Default": "0.00")))
-	DB.Columns.Add(DB.CreateColumn2(CreateMap("Name": "product_image", "Type": DB.BLOB)))
+	DB.Columns.Add(DB.CreateColumn2(CreateMap("Name": "article_title", "Null": False)))
+	DB.Columns.Add(DB.CreateColumn2(CreateMap("Name": "article_body", "Null": False)))
+	DB.Columns.Add(DB.CreateColumn2(CreateMap("Name": "article_status", "Type": DB.INTEGER, "Null": False, "Default": "0")))
+	DB.Columns.Add(DB.CreateColumn2(CreateMap("Name": "article_featured_image", "Type": DB.BLOB)))
 	DB.Foreign("category_id", "id", "tbl_categories", "", "")
 	DB.Create
 	
-	DB.Columns = Array("category_id", "product_code", "product_name", "product_price")
-	DB.Insert2(Array(2, "T001", "Teddy Bear", 99.9))
-	DB.Insert2(Array(1, "H001", "Hammer", 15.75))
-	DB.Insert2(Array(2, "T002", "Optimus Prime", 1000))
+	DB.Columns = Array("category_id", "article_title", "article_body", "article_status")
+	DB.Insert2(Array(3, "New to Blogs", $"<H1>Welcome to My Blog</H1>
+	<p>It's my first time writing a blog!<br>
+	I am very excited to share more on my life journey. 😉</p>"$, 1))
 	
 	Wait For (DB.ExecuteBatch) Complete (Success As Boolean)
 	If Success Then
