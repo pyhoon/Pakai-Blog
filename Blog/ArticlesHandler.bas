@@ -135,9 +135,26 @@ Private Sub HandleAddModal
 	Dim modalBody As Tag = Div.cls("modal-body").up(form1)
 	Div.id("modal-messages").up(modalBody)'.hxSwapOob("true")
 	
+	Dim group1 As Tag = Div.cls("form-group").up(modalBody)
+	Label.forId("category1").text("Category ").up(group1).add(Span.cls("text-danger").text("*"))
+	Dim select1 As Tag = CreateCategoriesDropdown(-1)
+	select1.id("category1")
+	select1.name("category")
+	select1.up(group1)
+	
 	Dim group1 As Tag = modalBody.add(Div.cls("form-group"))
-	Label.forId("name").text("Name ").up(group1).add(Span.cls("text-danger").text("*"))
-	Input.typeOf("text").up(group1).id("name").name("name").cls("form-control").attr3("required")
+	Label.forId("title").text("Title ").up(group1).add(Span.cls("text-danger").text("*"))
+	Input.typeOf("text").up(group1).id("title").name("title").cls("form-control").attr3("required")
+
+	Dim group2 As Tag = modalBody.add(Div.cls("form-group"))
+	Label.forId("body").text("Body ").up(group2).add(Span.cls("text-danger").text("*"))
+	Textarea.rows("3").up(group2).id("body").name("body").cls("form-control").attr3("required")
+
+	Dim group3 As Tag = modalBody.add(Div.cls("form-group"))
+	Label.forId("status").text("Status ").up(group3).add(Span.cls("text-danger").text("*"))
+	Dim select1 As Tag = Dropdown.up(group3).id("status").name("status").cls("form-select").attr3("required")
+	Option.valueOf("0").text("Draft").up(select1)
+	Option.valueOf("1").text("Published").up(select1)
 
 	Dim modalFooter As Tag = Div.cls("modal-footer").up(form1)
 	Button.typeOf("submit").cls("btn btn-success px-3").text("Create").up(modalFooter)
@@ -222,20 +239,36 @@ Private Sub HandleArticles
 	Select Method
 		Case "POST"
 			' Create
-			Dim name As String = Request.GetParameter("name")
-			If name = "" Or name.Trim.Length < 2 Then
-				ShowAlert("Articles name must be at least 2 characters long.", "warning")
+			Dim article_title As String = Request.GetParameter("title")
+			Dim article_body As String = Request.GetParameter("body")
+			Dim article_status As String = Request.GetParameter("status")
+			Dim category_id As Int = Request.GetParameter("category")
+			
+			If category_id < 1 Then
+				ShowAlert("Please select a category for the Article.", "warning")
+				Return
+			End If			
+			If article_title = "" Or article_title.Trim.Length < 2 Then
+				ShowAlert("Article title must be at least 2 characters long.", "warning")
+				Return
+			End If
+			If article_body = "" Then
+				ShowAlert("Article body cannot be empty.", "warning")
+				Return
+			End If
+			If article_status = "" Then
+				ShowAlert("Please select a status for the Article.", "warning")
 				Return
 			End If
 			Try
 				DB.SQL = Main.DBOpen
 				DB.Table = "tbl_articles"
-				DB.Where = Array("article_name = ?")
-				DB.Parameters = Array(name)
+				DB.Where = Array("article_title = ?")
+				DB.Parameters = Array(article_title)
 				DB.Query
 				If DB.Found Then
 					DB.Close
-					ShowAlert("Articles already exists!", "warning")
+					ShowAlert("Article with same title already exists!", "warning")
 					Return
 				End If
 			Catch
@@ -246,11 +279,11 @@ Private Sub HandleArticles
 			' Insert new row
 			Try
 				DB.Reset
-				DB.Columns = Array("article_name", "created_date")
-				DB.Parameters = Array(name, Main.CurrentDateTime)
+				DB.Columns = Array("article_title", "article_body", "article_status", "category_id")
+				DB.Parameters = Array(article_title, article_body, article_status, category_id)
 				DB.Save
 				DB.Close
-				ShowToast("Articles", "created", "Articles created successfully!", "success")
+				ShowToast("Articles", "created", "Article created successfully!", "success")
 			Catch
 				ShowAlert($"Database error: ${LastException.Message}"$, "danger")
 			End Try
@@ -397,4 +430,27 @@ Private Sub ShowToast (entity As String, action As String, message As String, st
 	"status": status))
 
 	App.WriteHtml(Response, div1.Build & CRLF & script1.Generate)
+End Sub
+
+Private Sub CreateCategoriesDropdown (selected As Int) As Tag
+	Dim select1 As Tag = Dropdown.cls("form-select")
+	select1.attr3("required")
+	'select1.hxGet("/api/categories/list")
+	Option.valueOf("").text("Select Category").attr3(IIf(selected < 1, "selected", "")).attr3("disabled").up(select1)
+
+	DB.SQL = Main.DBOpen
+	DB.Table = "tbl_categories"
+	DB.Columns = Array("id", "category_name AS name")
+	DB.Query
+	For Each row As Map In DB.Results
+		Dim catid As Int = row.Get("id")
+		Dim catname As String = row.Get("name")
+		If catid = selected Then
+			Option.valueOf(catid).attr3("selected").text(catname).up(select1)
+		Else
+			Option.valueOf(catid).text(catname).up(select1)
+		End If
+	Next
+	DB.Close
+	Return select1
 End Sub

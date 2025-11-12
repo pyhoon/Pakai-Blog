@@ -22,9 +22,10 @@ Module2=CategoriesHandler
 Module3=Database
 Module4=HttpsFilter
 Module5=MainView
+Module6=ProductsHandler
 NumberOfFiles=4
 NumberOfLibraries=5
-NumberOfModules=5
+NumberOfModules=6
 Version=10.3
 @EndOfDesignText@
 #Region Project Attributes
