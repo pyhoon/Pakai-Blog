@@ -173,12 +173,16 @@ Private Sub HandleEditModal
 		
 	DB.SQL = Main.DBOpen
 	DB.Table = "tbl_articles"
-	DB.Columns = Array("id", "article_name AS name")
+	DB.Columns = Array("article_title AS title", "article_body AS body", "article_status AS status", "category_id AS category")
 	DB.WhereParam("id = ?", id)
 	DB.Query
 	If DB.Found Then
-		Dim name As String = DB.First.Get("name")
-
+		Dim row As Map = DB.First
+		Dim article_title As String = row.Get("title")
+		Dim article_body As String = row.Get("body")
+		Dim article_status As Int = row.Get("status")
+		Dim category_id As Int = row.Get("category")
+		
 		Dim modalHeader As Tag = Div.cls("modal-header").up(form1)
 		H5.cls("modal-title").text("Edit Articles").up(modalHeader)
 		Button.typeOf("button").cls("btn-close").data("bs-dismiss", "modal").up(modalHeader)
@@ -188,8 +192,33 @@ Private Sub HandleEditModal
 		Input.typeOf("hidden").up(modalBody).name("id").valueOf(id)
 		
 		Dim group1 As Tag = Div.cls("form-group").up(modalBody)
-		Label.forId("name").text("Name ").up(group1).add(Span.cls("text-danger").text("*"))
-		Input.typeOf("text").cls("form-control").id("name").name("name").valueOf(name).attr3("required").up(group1)
+		Label.forId("category1").text("Category ").up(group1).add(Span.cls("text-danger").text("*"))
+		Dim select1 As Tag = CreateCategoriesDropdown(category_id)
+		select1.id("category1")
+		select1.name("category")
+		select1.up(group1)
+	
+		Dim group1 As Tag = modalBody.add(Div.cls("form-group"))
+		Label.forId("title").text("Title ").up(group1).add(Span.cls("text-danger").text("*"))
+		Input.typeOf("text").up(group1).id("title").name("title").cls("form-control").valueOf(article_title).attr3("required")
+
+		Dim group2 As Tag = modalBody.add(Div.cls("form-group"))
+		Label.forId("body").text("Body ").up(group2).add(Span.cls("text-danger").text("*"))
+		Textarea.rows("3").up(group2).id("body").name("body").cls("form-control").text(article_body).attr3("required")
+
+		Dim group3 As Tag = modalBody.add(Div.cls("form-group"))
+		Label.forId("status").text("Status ").up(group3).add(Span.cls("text-danger").text("*"))
+		Dim select1 As Tag = Dropdown.up(group3).id("status").name("status").cls("form-select").attr3("required")
+		If article_status = 0 Then
+			Option.valueOf("0").attr3("selected").text("Draft").up(select1)
+		Else
+			Option.valueOf("0").text("Draft").up(select1)
+		End If
+		If article_status = 1 Then
+			Option.valueOf("1").attr3("selected").text("Published").up(select1)
+		Else
+			Option.valueOf("1").text("Published").up(select1)
+		End If
 
 		Dim modalFooter As Tag = Div.cls("modal-footer").up(form1)
 		Button.typeOf("submit").cls("btn btn-primary px-3").text("Update").up(modalFooter)
@@ -290,23 +319,32 @@ Private Sub HandleArticles
 		Case "PUT"
 			' Update
 			Dim id As Int = Request.GetParameter("id")
-			Dim name As String = Request.GetParameter("name")
+			Dim article_title As String = Request.GetParameter("title")
+			Dim article_body As String = Request.GetParameter("body")
+			Dim article_status As String = Request.GetParameter("status")
+			Dim category_id As Int = Request.GetParameter("category")
+			
+			If category_id < 1 Then
+				ShowAlert("Please select a category for the Article.", "warning")
+				Return
+			End If			
+			If article_title = "" Or article_title.Trim.Length < 2 Then
+				ShowAlert("Article title must be at least 2 characters long.", "warning")
+				Return
+			End If
+			If article_body = "" Then
+				ShowAlert("Article body cannot be empty.", "warning")
+				Return
+			End If
+			If article_status = "" Then
+				ShowAlert("Please select a status for the Article.", "warning")
+				Return
+			End If
 			DB.SQL = Main.DBOpen
 			DB.Table = "tbl_articles"
-			
 			DB.Find(id)
 			If DB.Found = False Then
 				ShowAlert("Articles not found!", "warning")
-				DB.Close
-				Return
-			End If
-
-			DB.Reset
-			DB.Where = Array("article_name = ?", "id <> ?")
-			DB.Parameters = Array(name, id)
-			DB.Query
-			If DB.Found Then
-				ShowAlert("Articles already exists!", "warning")
 				DB.Close
 				Return
 			End If
@@ -314,8 +352,10 @@ Private Sub HandleArticles
 			' Update row
 			Try
 				DB.Reset
-				DB.Columns = Array("article_name", "modified_date")
-				DB.Parameters = Array(name, Main.CurrentDateTime)
+				'DB.Columns = Array("article_name", "modified_date")
+				'DB.Parameters = Array(name, Main.CurrentDateTime)
+				DB.Columns = Array("article_title", "article_body", "article_status", "category_id", "modified_date")
+				DB.Parameters = Array(article_title, article_body, article_status, category_id, Main.CurrentDateTime)
 				DB.Id = id
 				DB.Save
 				DB.Close
