@@ -45,7 +45,25 @@ Private Sub RenderPage
 	main1.LoadContent(ContentContainer)
 	main1.LoadModal(ModalContainer)
 	main1.LoadToast(ToastContainer)
+
 	Dim page1 As Tag = main1.Render
+	Dim body1 As Tag = page1.Child(1)
+	Dim nav1 As Tag = body1.Child(1)
+	Dim container1 As Tag = nav1.Child(0)
+	Dim navbar1 As Tag = container1.Child(3)
+	Dim ulist1 As Tag = navbar1.Child(0)
+	
+	Dim list1 As Tag = Li.cls("nav-item d-block d-lg-block").up(ulist1)
+	Dim anchor1 As Tag = Anchor.href("/categories").up(list1)
+	anchor1.cls("nav-link")
+	anchor1.text("Categories")
+
+	' Sample for adding additional menu link
+	Dim list2 As Tag = Li.cls("nav-item d-block d-lg-block").up(ulist1)
+	Dim anchor2 As Tag = Anchor.href("#").up(list2)
+	anchor2.cls("nav-link")
+	anchor2.text("Articles")
+	
 	Dim doc As Document
 	doc.Initialize
 	doc.AppendDocType
@@ -239,11 +257,12 @@ Private Sub HandleDeleteModal
 
 	DB.SQL = Main.DBOpen
 	DB.Table = "tbl_articles"
-	DB.Columns = Array("id", "article_name AS name")
+	'DB.Columns = Array("id", "article_name AS name")
+	DB.Columns = Array("article_title")
 	DB.WhereParam("id = ?", id)
 	DB.Query
 	If DB.Found Then
-		Dim name As String = DB.First.Get("name")
+		Dim article_title As String = DB.First.Get("article_title")
 
 		Dim modalHeader As Tag = Div.cls("modal-header").up(form1)
 		H5.cls("modal-title").text("Delete Articles").up(modalHeader)
@@ -252,7 +271,7 @@ Private Sub HandleDeleteModal
 		Dim modalBody As Tag = Div.cls("modal-body").up(form1)
 		Div.id("modal-messages").up(modalBody)
 		Input.typeOf("hidden").name("id").valueOf(id).up(modalBody)
-		Paragraph.text($"Delete ${name}?"$).up(modalBody)
+		Paragraph.text($"Delete ${article_title}?"$).up(modalBody)
 
 		Dim modalFooter As Tag = Div.cls("modal-footer").up(form1)
 		Button.typeOf("submit").cls("btn btn-danger px-3").text("Delete").up(modalFooter)
@@ -372,15 +391,6 @@ Private Sub HandleArticles
 			DB.Find(id)
 			If DB.Found = False Then
 				ShowAlert("Articles not found!", "warning")
-				DB.Close
-				Return
-			End If
-			
-			DB.Table = "dbtable2" ' child table
-			DB.WhereParam("article_id = ?", id)
-			DB.Query
-			If DB.Found Then
-				ShowAlert("Cannot delete article with associated rows!", "warning")
 				DB.Close
 				Return
 			End If

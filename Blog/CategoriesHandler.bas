@@ -58,11 +58,10 @@ Private Sub RenderPage
 	anchor1.cls("nav-link")
 	anchor1.text("Categories")
 
-	' Sample for adding additional menu link
-	'Dim list2 As Tag = Li.cls("nav-item d-block d-lg-block").up(ulist1)
-	'Dim anchor2 As Tag = Anchor.href("/users").up(list2)
-	'anchor2.cls("nav-link")
-	'anchor2.text("Users")
+	Dim list2 As Tag = Li.cls("nav-item d-block d-lg-block").up(ulist1)
+	Dim anchor2 As Tag = Anchor.href("/articles").up(list2)
+	anchor2.cls("nav-link")
+	anchor2.text("Articles")
 	
 	Dim doc As Document
 	doc.Initialize
