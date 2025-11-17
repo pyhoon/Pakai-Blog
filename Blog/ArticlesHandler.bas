@@ -24,10 +24,12 @@ Sub Handle (req As ServletRequest, resp As ServletResponse)
 	Method = req.Method
 	Log($"${Request.Method}: ${Request.RequestURI}"$)
 	Dim path As String = req.RequestURI
-	If path = "/" Then
+	If path = "/articles" Then
 		RenderPage
 	Else If path = "/api/articles/table" Then
 		HandleTable
+	Else If path = "/api/articles/list" Then
+		HandleArticlesList
 	Else If path = "/api/articles/add" Then
 		HandleAddModal
 	Else If path.StartsWith("/api/articles/edit/") Then
@@ -458,6 +460,31 @@ Private Sub CreateArticlesRow (data As Map) As Tag
 	anchor2.attr("title", "Delete")
 	
 	Return tr1
+End Sub
+
+Private Sub HandleArticlesList
+	DB.SQL = Main.DBOpen
+	DB.Table = "tbl_articles"
+	DB.Columns = Array("id", "article_title", "article_body", "created_date")
+	DB.WhereParam("article_status = ?", 1)
+	DB.OrderBy = CreateMap("id": "")
+	DB.Query
+	
+	Dim div1 As Tag = Div.init
+	For Each row As Map In DB.Results
+		Dim article_title As String = row.Get("article_title")
+		Dim article_body As String = row.Get("article_body")
+		Dim created_date As String = "created on " & row.Get("created_date")
+		
+		Dim card1 As Tag = Div.cls("card text-start mb-3")
+		Dim cardbody1 As Tag = Div.cls("card-body").up(card1)
+		H5.cls("card-title").up(cardbody1).text(article_title)
+		H6.cls("card-subtitle mb-2 text-body-secondary").up(cardbody1).text(created_date)
+		Paragraph.cls("card-text").up(cardbody1).text(article_body)
+		card1.up(div1)
+	Next
+	DB.Close
+	App.WriteHtml(Response, div1.Build)
 End Sub
 
 Private Sub ShowAlert (message As String, status As String)

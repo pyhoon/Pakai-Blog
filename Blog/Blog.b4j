@@ -21,11 +21,12 @@ Module1=ArticlesHandler
 Module2=CategoriesHandler
 Module3=Database
 Module4=HttpsFilter
-Module5=MainView
-Module6=ProductsHandler
+Module5=IndexHandler
+Module6=MainView
+Module7=ProductsHandler
 NumberOfFiles=4
 NumberOfLibraries=5
-NumberOfModules=6
+NumberOfModules=7
 Version=10.3
 @EndOfDesignText@
 #Region Project Attributes
@@ -69,8 +70,9 @@ Sub AppStart (Args() As String)
 	App.ssl.Enabled = True
 	App.RedirectToHttps = True
 	#End If
-	App.Get("", "ArticlesHandler")
+	App.Get("", "IndexHandler")
 	App.Get("/categories", "CategoriesHandler")
+	App.Get("/articles", "ArticlesHandler")
 	App.Rest("/api/articles/*", "ArticlesHandler")
 	App.Rest("/api/categories/*", "CategoriesHandler")
 	App.Start
