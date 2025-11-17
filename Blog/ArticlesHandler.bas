@@ -80,7 +80,7 @@ Private Sub ContentContainer As Tag
 	
 	Dim row1 As Tag = Div.cls("row").up(form1)
 	Dim col2 As Tag = Div.cls("col-md-6 col-lg-6 text-start").up(row1)
-	H3.cls("text-uppercase").text("Title").up(col2)
+	H3.cls("text-uppercase").text("Articles List").up(col2)
 	
 	Dim div1 As Tag = Div.cls("col-md-6 col-lg-6").up(row1)
 	Dim div2 As Tag = Div.cls("text-end mt-2").up(div1)
